@@ -19,6 +19,9 @@ export class CdkSecStack extends cdk.Stack {
       ]
     })
     // VPCエンドポイント
+    vpc.addInterfaceEndpoint("ssm_messages-endpoint", {
+      service: ec2.InterfaceVpcEndpointAwsService.SSM_MESSAGES
+    })
     vpc.addInterfaceEndpoint("logs-endpoint", {
       service: ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS
     })
