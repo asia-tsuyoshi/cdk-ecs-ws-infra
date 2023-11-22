@@ -44,8 +44,6 @@ export class CdkSecStack extends cdk.Stack {
       autoDeleteImages: true
     });
 
-    // const repo = ecr.Repository.fromRepositoryName(this, "repo", "watanabe-new")
-
     // ECS
     const cluster = new ecs.Cluster(this, "cluster", { vpc })
     const taskDefinition = new ecs.TaskDefinition(this, "taskdef", {
@@ -58,7 +56,7 @@ export class CdkSecStack extends cdk.Stack {
       logging: ecs.LogDriver.awsLogs({ streamPrefix: 'test-on-fargate' }),
       // プロトコルtcp 9000で設定
       portMappings: [{containerPort: 9000, protocol: ecs.Protocol.TCP}],
-      // readonlyRootFilesystem: false
+      readonlyRootFilesystem: false
     })
     new ecs.FargateService(this, "service", {
       cluster,
