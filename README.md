@@ -1,3 +1,8 @@
+# 注意点
+ECRはデプロイ時点で空ですが、ECSのコンテナがそちらに格納されているイメージを元にデプロイされます。
+よって、本環境のデプロイ後にECRへイメージをプッシュしてください。
+何度かリトライするため、コンテナが問題なくデプロイされるはずです。
+
 # Welcome to your CDK TypeScript project
 
 This is a blank project for CDK development with TypeScript.
