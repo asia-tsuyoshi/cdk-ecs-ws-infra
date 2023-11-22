@@ -8,7 +8,7 @@ export class CdkSecStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) 
   {
     super(scope, id, props);
-
+    // VPC
     const vpc = new ec2.Vpc(this, "vpc", {
       ipAddresses: ec2.IpAddresses.cidr('10.0.0.0/16'),
       subnetConfiguration: [
@@ -18,15 +18,15 @@ export class CdkSecStack extends cdk.Stack {
         }
       ]
     })
-    // ECS用
+    // VPCエンドポイント
+    vpc.addInterfaceEndpoint("logs-endpoint", {
+      service: ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS
+    })
     vpc.addInterfaceEndpoint("ecr-endpoint", {
       service: ec2.InterfaceVpcEndpointAwsService.ECR
     })
     vpc.addInterfaceEndpoint("ecr-dkr-endpoint", {
       service: ec2.InterfaceVpcEndpointAwsService.ECR_DOCKER
-    })
-    vpc.addInterfaceEndpoint("logs-endpoint", {
-      service: ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS
     })
     vpc.addGatewayEndpoint("s3-endpoint", {
       service: ec2.GatewayVpcEndpointAwsService.S3,
@@ -37,9 +37,16 @@ export class CdkSecStack extends cdk.Stack {
       ]
     })
 
+    // ECR
+    const repo = new ecr.Repository(this, 'Repository', {
+      repositoryName: "sample-repo",
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteImages: true
+    });
 
-    const repo = ecr.Repository.fromRepositoryName(this, "repo", "watanabe-new")
+    // const repo = ecr.Repository.fromRepositoryName(this, "repo", "watanabe-new")
 
+    // ECS
     const cluster = new ecs.Cluster(this, "cluster", { vpc })
     const taskDefinition = new ecs.TaskDefinition(this, "taskdef", {
       compatibility: ecs.Compatibility.FARGATE,
@@ -47,9 +54,7 @@ export class CdkSecStack extends cdk.Stack {
       memoryMiB: "512",
     })
     taskDefinition.addContainer("laravel", {
-      // docker側できたら差し替える
       image: ecs.ContainerImage.fromEcrRepository(repo),
-      // image: ecs.ContainerImage.fromRegisstry("/amazon-ecs-sample"),
       logging: ecs.LogDriver.awsLogs({ streamPrefix: 'test-on-fargate' }),
       // プロトコルtcp 9000で設定
       portMappings: [{containerPort: 9000, protocol: ecs.Protocol.TCP}],
